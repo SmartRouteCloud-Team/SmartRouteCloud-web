@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+</head>
+<body>
+
+  <h1>📦 Dashboard Logística</h1>
+
+  <button id="logout">Cerrar sesión</button>
+
+  <h3>Resumen</h3>
+  <ul>
+    <li>En tránsito: <span id="transito">0</span></li>
+    <li>Entregados: <span id="entregados">0</span></li>
+    <li>Retrasados: <span id="retrasados">0</span></li>
+  </ul>
+
+  <h3>Envíos</h3>
+  <ul id="listaEnvios"></ul>
+
+  <script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>

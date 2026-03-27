@@ -1,0 +1,23 @@
+{
+  "name": "smartroutecloud-web",
+  "version": "1.0.0",
+  "description": "smar Troute Cloud Web",
+  "main": "index.js",
+  "scripts": {
+    "des": "nodemon --exec node src/index.js"
+  },
+  "author": "esther and alejandro",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "css-loader": "^7.1.4",
+    "express": "^5.2.1",
+    "firebase": "^12.11.0",
+    "firebase-admin": "^13.7.0",
+    "html-webpack-plugin": "^5.6.6",
+    "nodemon": "^3.1.14",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.105.4",
+    "webpack-dev-middleware": "^7.4.5"
+  }
+}
