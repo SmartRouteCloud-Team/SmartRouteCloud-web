@@ -3,7 +3,6 @@
     "public": "src/cliente",
     "ignore": [
       "firebase.json",
-      "**/.*",
       "**/node_modules/**"
     ]
   }

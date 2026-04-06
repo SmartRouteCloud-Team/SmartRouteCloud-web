@@ -1,7 +1,7 @@
 {
   "name": "smartroutecloud-web",
   "version": "1.0.0",
-  "description": "smar Troute Cloud Web",
+  "description": "Smart Route Cloud Web",
   "main": "index.js",
   "scripts": {
     "des": "nodemon --exec node src/index.js"
