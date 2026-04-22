@@ -51,5 +51,7 @@ node_modules/
 firebase.js
 .env
 config.js
+# Allow client-side config.js (contains public Firebase web keys, not secrets)
+!src/cliente/js/config.js
 firebaseKey.json
 *.key.json
