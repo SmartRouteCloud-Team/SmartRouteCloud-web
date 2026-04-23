@@ -6,6 +6,7 @@ const path = require("path");
 const choferRoutes = require("./servidor/routes/chofer");
 const adminRoutes = require("./servidor/routes/admin");
 const tiRoutes = require("./servidor/routes/ti");
+const rutasRoutes = require("./servidor/routes/rutas");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/chofer", choferRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ti", tiRoutes);
+app.use("/api/rutas", rutasRoutes);
 
 // Servir archivos estáticos (frontend intacto)
 app.use(express.static(path.join(__dirname, "cliente")));
