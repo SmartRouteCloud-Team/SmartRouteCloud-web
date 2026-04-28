@@ -249,6 +249,11 @@ async function seedDatabase(req, res) {
     const entregaRef = db.collection("entregas").doc();
     const routeRef = db.collection("routes").doc();
 
+    // Role document refs (fixed IDs for idempotency)
+    const roleAdminRef = db.collection("roles").doc("ADMIN");
+    const roleChoferRef = db.collection("roles").doc("CHOFER");
+    const roleTiRef = db.collection("roles").doc("TI");
+
     const demoEntrega = {
       id: entregaRef.id,
       estado: "pendiente",
@@ -259,11 +264,34 @@ async function seedDatabase(req, res) {
 
     const batch = db.batch();
 
+    // roles
+    batch.set(roleAdminRef, {
+      nombre: "Administrador",
+      descripcion: "Gestiona choferes, rutas y reportes de su equipo",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    batch.set(roleChoferRef, {
+      nombre: "Chofer",
+      descripcion: "Visualiza y actualiza sus rutas y entregas asignadas",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    batch.set(roleTiRef, {
+      nombre: "TI",
+      descripcion: "Acceso completo al sistema para administración técnica",
+      createdAt: now,
+      updatedAt: now,
+    });
+
     // users
     batch.set(db.collection("users").doc(adminUid), {
       nombre: adminNombre,
       email: adminEmail,
       role: "ADMIN",
+      roleRef: roleAdminRef,
       estado: "activo",
       adminAsignado: null,
       choferesAsignados: [choferUid],
@@ -275,6 +303,7 @@ async function seedDatabase(req, res) {
       nombre: choferNombre,
       email: choferEmail,
       role: "CHOFER",
+      roleRef: roleChoferRef,
       estado: "activo",
       adminAsignado: adminUid,
       choferesAsignados: null,
