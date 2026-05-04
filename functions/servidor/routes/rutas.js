@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const rateLimit = require("express-rate-limit");
 const { verifyToken } = require("../middleware/auth");
-const { requireRole } = require("../middleware/roles");
+const { requirePermission } = require("../middleware/permissions");
 const { cargarMasivo } = require("../controllers/rutasController");
 
 const limiter = rateLimit({
@@ -21,9 +21,8 @@ const mutationLimiter = rateLimit({
 
 router.use(limiter);
 router.use(verifyToken);
-router.use(requireRole("ADMIN", "TI"));
 
 // POST /api/rutas/cargar-masivo
-router.post("/cargar-masivo", mutationLimiter, cargarMasivo);
+router.post("/cargar-masivo", mutationLimiter, requirePermission("rutas:cargar_masivo"), cargarMasivo);
 
 module.exports = router;

@@ -191,6 +191,99 @@ async function eliminarUsuario(req, res) {
   }
 }
 
+// PUT /api/ti/users/:id/estado - Activar/desactivar usuario
+async function cambiarEstadoUsuario(req, res) {
+  try {
+    const userId = req.params.id;
+    const { estado } = req.body;
+
+    const estadosValidos = ["activo", "inactivo"];
+    if (!estadosValidos.includes(estado)) {
+      return res.status(400).json({ error: "Estado inválido. Use 'activo' o 'inactivo'" });
+    }
+
+    const userDoc = await db.collection("users").doc(userId).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    await userDoc.ref.update({ estado, updatedAt: new Date() });
+    res.json({ message: `Usuario ${estado === "activo" ? "activado" : "desactivado"} correctamente` });
+  } catch (error) {
+    console.error("ti error:", error);
+    res.status(500).json({ error: "Error al cambiar el estado del usuario" });
+  }
+}
+
+// GET /api/ti/roles - Obtener todos los roles
+async function getRoles(req, res) {
+  try {
+    const rolesSnapshot = await db.collection("roles").get();
+    const roles = rolesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    res.json({ roles });
+  } catch (error) {
+    console.error("ti error:", error);
+    res.status(500).json({ error: "Error al obtener los roles" });
+  }
+}
+
+// POST /api/ti/roles - Crear rol
+async function crearRol(req, res) {
+  try {
+    const { roleId, nombre, permisos } = req.body;
+
+    if (!roleId || !nombre || !Array.isArray(permisos)) {
+      return res.status(400).json({ error: "roleId, nombre y permisos (array) son requeridos" });
+    }
+
+    const permisosInvalidos = permisos.filter((p) => typeof p !== "string" || !/^\w+:\w+$/.test(p));
+    if (permisosInvalidos.length > 0) {
+      return res.status(400).json({ error: "Permisos con formato inválido. Use 'recurso:accion'" });
+    }
+
+    const existingDoc = await db.collection("roles").doc(roleId).get();
+    if (existingDoc.exists) {
+      return res.status(409).json({ error: "Ya existe un rol con ese roleId" });
+    }
+
+    const nuevoRol = { roleId, nombre, permisos, createdAt: new Date(), updatedAt: new Date() };
+    await db.collection("roles").doc(roleId).set(nuevoRol);
+    res.status(201).json(nuevoRol);
+  } catch (error) {
+    console.error("ti error:", error);
+    res.status(500).json({ error: "Error al crear el rol" });
+  }
+}
+
+// PUT /api/ti/roles/:id - Actualizar rol
+async function actualizarRol(req, res) {
+  try {
+    const roleId = req.params.id;
+    const { nombre, permisos } = req.body;
+
+    const roleDoc = await db.collection("roles").doc(roleId).get();
+    if (!roleDoc.exists) {
+      return res.status(404).json({ error: "Rol no encontrado" });
+    }
+
+    const updates = { updatedAt: new Date() };
+    if (nombre !== undefined) updates.nombre = nombre;
+    if (Array.isArray(permisos)) {
+      const permisosInvalidos = permisos.filter((p) => typeof p !== "string" || !/^\w+:\w+$/.test(p));
+      if (permisosInvalidos.length > 0) {
+        return res.status(400).json({ error: "Permisos con formato inválido. Use 'recurso:accion'" });
+      }
+      updates.permisos = permisos;
+    }
+
+    await roleDoc.ref.update(updates);
+    res.json({ message: "Rol actualizado correctamente" });
+  } catch (error) {
+    console.error("ti error:", error);
+    res.status(500).json({ error: "Error al actualizar el rol" });
+  }
+}
+
 // POST /api/ti/seed - Crear colecciones/documentos base de demostración
 async function seedDatabase(req, res) {
   try {
@@ -258,6 +351,66 @@ async function seedDatabase(req, res) {
     };
 
     const batch = db.batch();
+
+    // roles
+    const rolesData = [
+      {
+        roleId: "ADMIN",
+        nombre: "Administrador",
+        permisos: [
+          "rutas:crear",
+          "rutas:asignar",
+          "rutas:cargar_masivo",
+          "rutas:actualizar",
+          "rutas:ver",
+          "choferes:crear",
+          "choferes:eliminar",
+          "choferes:ver",
+          "reportes:ver_equipo",
+          "entregas:ver",
+          "entregas:actualizar",
+        ],
+      },
+      {
+        roleId: "TI",
+        nombre: "Técnico TI",
+        permisos: [
+          "rutas:crear",
+          "rutas:asignar",
+          "rutas:cargar_masivo",
+          "rutas:actualizar",
+          "rutas:ver",
+          "choferes:crear",
+          "choferes:eliminar",
+          "choferes:ver",
+          "reportes:ver_equipo",
+          "reportes:ver_global",
+          "entregas:ver",
+          "entregas:actualizar",
+          "usuarios:crear",
+          "usuarios:actualizar",
+          "usuarios:eliminar",
+          "usuarios:desactivar",
+          "sistema:seed",
+          "roles:ver",
+          "roles:crear",
+          "roles:actualizar",
+        ],
+      },
+      {
+        roleId: "CHOFER",
+        nombre: "Chofer",
+        permisos: [
+          "rutas:ver",
+          "entregas:ver",
+          "entregas:actualizar",
+        ],
+      },
+    ];
+
+    rolesData.forEach((rol) => {
+      batch.set(db.collection("roles").doc(rol.roleId), { ...rol, createdAt: now, updatedAt: now });
+    });
 
     // users
     batch.set(db.collection("users").doc(adminUid), {
@@ -370,4 +523,8 @@ module.exports = {
   cambiarRolUsuario,
   eliminarUsuario,
   seedDatabase,
+  cambiarEstadoUsuario,
+  getRoles,
+  crearRol,
+  actualizarRol,
 };
