@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const rateLimit = require("express-rate-limit");
 const { verifyToken } = require("../middleware/auth");
-const { requireRole } = require("../middleware/roles");
+const { requirePermission } = require("../middleware/permissions");
 const {
   getMiRuta,
   getMisEntregas,
@@ -19,18 +19,17 @@ const limiter = rateLimit({
 
 router.use(limiter);
 router.use(verifyToken);
-router.use(requireRole("CHOFER"));
 
 // GET /api/chofer/mi-ruta
-router.get("/mi-ruta", getMiRuta);
+router.get("/mi-ruta", requirePermission("rutas:ver"), getMiRuta);
 
 // GET /api/chofer/mi-ruta/entregas
-router.get("/mi-ruta/entregas", getMisEntregas);
+router.get("/mi-ruta/entregas", requirePermission("entregas:ver"), getMisEntregas);
 
 // GET /api/chofer/mis-rutas-futuras
-router.get("/mis-rutas-futuras", getMisRutasFuturas);
+router.get("/mis-rutas-futuras", requirePermission("rutas:ver"), getMisRutasFuturas);
 
 // PUT /api/chofer/entregas/:id
-router.put("/entregas/:id", actualizarEntrega);
+router.put("/entregas/:id", requirePermission("entregas:actualizar"), actualizarEntrega);
 
 module.exports = router;
