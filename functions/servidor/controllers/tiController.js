@@ -134,7 +134,19 @@ async function crearUsuario(req, res) {
 
     await db.collection("users").doc(userRecord.uid).set(nuevoUsuario);
 
-    res.status(201).json({ id: userRecord.uid, ...nuevoUsuario });
+    let resetLink = null;
+    let inviteWarning = null;
+    try {
+      resetLink = await admin.auth().generatePasswordResetLink(email);
+    } catch (linkError) {
+      console.error("ti warning: no se pudo generar el link de invitación:", linkError);
+      inviteWarning = "Usuario creado, pero no se pudo generar el link de invitación";
+    }
+
+    const responseData = { id: userRecord.uid, ...nuevoUsuario, resetLink };
+    if (inviteWarning !== null) responseData.inviteWarning = inviteWarning;
+
+    res.status(201).json(responseData);
   } catch (error) {
     console.error("ti error:", error);
     if (error.code === "auth/email-already-exists") {
