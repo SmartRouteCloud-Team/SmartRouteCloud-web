@@ -20,7 +20,7 @@ app.use("/api/chofer", choferRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ti", tiRoutes);
 app.use("/api/rutas", rutasRoutes);
-
+// PRUEBA PARA HACER COMMIT
 // Servir archivos estáticos (frontend intacto)
 app.use(express.static(path.join(__dirname, "cliente")));
 
