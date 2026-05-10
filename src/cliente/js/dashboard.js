@@ -20,6 +20,9 @@ const roleViews = {
   TI: document.getElementById("view-ti"),
   END_USER: document.getElementById("view-end-user")
 };
+const tiNav = document.getElementById("ti-multi-nav");
+const tiNavButtons = Array.from(document.querySelectorAll("[data-ti-view]"));
+let choferViewInitialized = false;
 
 function normalizeRole(role) {
   const normalized = (role || "").toUpperCase();
@@ -71,8 +74,8 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
-async function initAdminView() {
-  const choferesData = await apiFetch("/api/admin/mis-choferes");
+async function initAdminView({ useGlobalChoferes = false } = {}) {
+  const choferesData = await apiFetch(useGlobalChoferes ? "/api/ti/todos-choferes" : "/api/admin/mis-choferes");
   const choferes = choferesData.choferes || [];
   const select = document.getElementById("admin-choferes-select");
   const kpisEl = document.getElementById("admin-kpis");
@@ -105,7 +108,7 @@ async function initAdminView() {
     ].join("");
   };
 
-  select.addEventListener("change", () => renderChoferKpis(select.value));
+  select.onchange = () => renderChoferKpis(select.value);
   await renderChoferKpis(select.value);
 }
 
@@ -121,6 +124,9 @@ async function initTiView() {
 }
 
 async function initChoferView() {
+  if (choferViewInitialized) return;
+  choferViewInitialized = true;
+
   const map = iniciarMapa();
   let envios = [];
   const marcadores = {};
@@ -275,6 +281,32 @@ function showError(message) {
   el.classList.remove("d-none");
 }
 
+function hideError() {
+  document.getElementById("estado-error").classList.add("d-none");
+}
+
+function setTiNavVisibility(show) {
+  tiNav.classList.toggle("d-none", !show);
+}
+
+function setTiActiveNavButton(roleView) {
+  tiNavButtons.forEach((button) => {
+    const isActive = button.dataset.tiView === roleView;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+async function loadView(viewRole, profileRole) {
+  setActiveRoleView(viewRole);
+  if (profileRole === "TI") setTiActiveNavButton(viewRole);
+  hideError();
+
+  if (viewRole === "ADMIN") await initAdminView({ useGlobalChoferes: profileRole === "TI" });
+  else if (viewRole === "TI") await initTiView();
+  else if (viewRole === "CHOFER") await initChoferView();
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = "/index.html";
@@ -296,12 +328,24 @@ onAuthStateChanged(auth, async (user) => {
     const roleLabels = { ADMIN: "ADMIN", CHOFER: "CHOFER", TI: "TI", END_USER: "END_USER" };
     const safeRoleLabel = roleLabels[role] || "END_USER";
     document.getElementById("perfil-usuario").textContent = `${profile?.nombre || profile?.email || user.email} · ${safeRoleLabel}`;
-    setActiveRoleView(role);
+    setTiNavVisibility(role === "TI");
+    if (role === "TI") {
+      tiNavButtons.forEach((button) => {
+        button.onclick = async () => {
+          try {
+            showLoading(true);
+            await loadView(button.dataset.tiView, role);
+          } catch (error) {
+            showError(`No fue posible cambiar la vista: ${error.message}`);
+            console.error(error);
+          } finally {
+            showLoading(true);
+          }
+        };
+      });
+    }
     showLoading(true);
-
-    if (role === "ADMIN") await initAdminView();
-    else if (role === "TI") await initTiView();
-    else if (role === "CHOFER") await initChoferView();
+    await loadView(role, role);
   } catch (error) {
     showLoading(true);
     showError(`No fue posible cargar el dashboard: ${error.message}`);

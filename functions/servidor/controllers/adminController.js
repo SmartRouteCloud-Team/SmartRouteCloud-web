@@ -1,15 +1,22 @@
 const { db } = require("../config/firebaseAdmin");
 
+function isTIUser(req) {
+  return req.userProfile?.role === "TI";
+}
+
 // GET /api/admin/mis-choferes - Ver choferes asignados al admin
 async function getMisChoferes(req, res) {
   try {
     const adminUid = req.user.uid;
+    const tiUser = isTIUser(req);
 
-    const choferesSnapshot = await db
+    let choferesQuery = db
       .collection("users")
-      .where("adminAsignado", "==", adminUid)
-      .where("role", "==", "CHOFER")
-      .get();
+      .where("role", "==", "CHOFER");
+    if (!tiUser) {
+      choferesQuery = choferesQuery.where("adminAsignado", "==", adminUid);
+    }
+    const choferesSnapshot = await choferesQuery.get();
 
     const choferes = choferesSnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -28,9 +35,10 @@ async function getRutaActualChofer(req, res) {
   try {
     const adminUid = req.user.uid;
     const choferUid = req.params.id;
+    const tiUser = isTIUser(req);
 
     const choferDoc = await db.collection("users").doc(choferUid).get();
-    if (!choferDoc.exists || choferDoc.data().adminAsignado !== adminUid) {
+    if (!choferDoc.exists || (!tiUser && choferDoc.data().adminAsignado !== adminUid)) {
       return res.status(403).json({ error: "No tienes acceso a este chofer" });
     }
 
@@ -59,9 +67,10 @@ async function getHistorialChofer(req, res) {
   try {
     const adminUid = req.user.uid;
     const choferUid = req.params.id;
+    const tiUser = isTIUser(req);
 
     const choferDoc = await db.collection("users").doc(choferUid).get();
-    if (!choferDoc.exists || choferDoc.data().adminAsignado !== adminUid) {
+    if (!choferDoc.exists || (!tiUser && choferDoc.data().adminAsignado !== adminUid)) {
       return res.status(403).json({ error: "No tienes acceso a este chofer" });
     }
 
@@ -88,9 +97,10 @@ async function getKpisChofer(req, res) {
   try {
     const adminUid = req.user.uid;
     const choferUid = req.params.id;
+    const tiUser = isTIUser(req);
 
     const choferDoc = await db.collection("users").doc(choferUid).get();
-    if (!choferDoc.exists || choferDoc.data().adminAsignado !== adminUid) {
+    if (!choferDoc.exists || (!tiUser && choferDoc.data().adminAsignado !== adminUid)) {
       return res.status(403).json({ error: "No tienes acceso a este chofer" });
     }
 
@@ -137,12 +147,15 @@ async function getKpisChofer(req, res) {
 async function getReporteEquipo(req, res) {
   try {
     const adminUid = req.user.uid;
+    const tiUser = isTIUser(req);
 
-    const choferesSnapshot = await db
+    let choferesQuery = db
       .collection("users")
-      .where("adminAsignado", "==", adminUid)
-      .where("role", "==", "CHOFER")
-      .get();
+      .where("role", "==", "CHOFER");
+    if (!tiUser) {
+      choferesQuery = choferesQuery.where("adminAsignado", "==", adminUid);
+    }
+    const choferesSnapshot = await choferesQuery.get();
 
     const choferIds = choferesSnapshot.docs.map((doc) => doc.id);
 
@@ -223,13 +236,14 @@ async function asignarChoferRuta(req, res) {
     const adminUid = req.user.uid;
     const rutaId = req.params.id;
     const { choferUid } = req.body;
+    const tiUser = isTIUser(req);
 
     if (!choferUid) {
       return res.status(400).json({ error: "choferUid es requerido" });
     }
 
     const choferDoc = await db.collection("users").doc(choferUid).get();
-    if (!choferDoc.exists || choferDoc.data().adminAsignado !== adminUid) {
+    if (!choferDoc.exists || (!tiUser && choferDoc.data().adminAsignado !== adminUid)) {
       return res.status(403).json({ error: "No tienes acceso a este chofer" });
     }
 
