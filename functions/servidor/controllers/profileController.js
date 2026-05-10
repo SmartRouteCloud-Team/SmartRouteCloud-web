@@ -11,7 +11,7 @@ async function getMyProfile(req, res) {
     return res.json({
       uid: req.user.uid,
       email: userData.email || req.user.email || null,
-      nombre: userData.nombre || req.user.name || null,
+      nombre: userData.nombre || req.user.displayName || null,
       role: userData.role || null,
       estado: userData.estado || null,
     });

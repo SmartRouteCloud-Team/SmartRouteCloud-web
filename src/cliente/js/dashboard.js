@@ -285,14 +285,17 @@ onAuthStateChanged(auth, async (user) => {
     let cached = null;
     try {
       cached = JSON.parse(sessionStorage.getItem("src_profile") || "null");
-    } catch (_error) {
+    } catch (error) {
+      console.warn("Perfil en cache inválido, se limpiará sessionStorage:", error);
       sessionStorage.removeItem("src_profile");
     }
     const profile = cached && cached.uid === user.uid ? cached : await getUserProfile();
     sessionStorage.setItem("src_profile", JSON.stringify(profile));
 
     const role = normalizeRole(profile?.role);
-    document.getElementById("perfil-usuario").textContent = `${profile?.nombre || profile?.email || user.email} · ${role}`;
+    const roleLabels = { ADMIN: "ADMIN", CHOFER: "CHOFER", TI: "TI", END_USER: "END_USER" };
+    const safeRoleLabel = roleLabels[role] || "END_USER";
+    document.getElementById("perfil-usuario").textContent = `${profile?.nombre || profile?.email || user.email} · ${safeRoleLabel}`;
     setActiveRoleView(role);
     showLoading(true);
 
