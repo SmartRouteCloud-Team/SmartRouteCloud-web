@@ -1,6 +1,9 @@
 const functions = require("firebase-functions/v1");
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const { verifyToken } = require("./servidor/middleware/auth");
+const { getMyProfile } = require("./servidor/controllers/profileController");
 
 const choferRoutes = require("./servidor/routes/chofer");
 const adminRoutes = require("./servidor/routes/admin");
@@ -30,6 +33,15 @@ app.use(
   })
 );
 app.use(express.json());
+
+const profileLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.get("/api/me/profile", profileLimiter, verifyToken, getMyProfile);
 
 // API Routes
 app.use("/api/chofer", choferRoutes);

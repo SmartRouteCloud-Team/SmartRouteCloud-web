@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const rateLimit = require("express-rate-limit");
+const { verifyToken } = require("../functions/servidor/middleware/auth");
+const { getMyProfile } = require("../functions/servidor/controllers/profileController");
 
 const choferRoutes = require("../functions/servidor/routes/chofer");
 const adminRoutes = require("../functions/servidor/routes/admin");
@@ -15,7 +18,16 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+const profileLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // API Routes
+app.get("/api/me/profile", profileLimiter, verifyToken, getMyProfile);
+
 app.use("/api/chofer", choferRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ti", tiRoutes);

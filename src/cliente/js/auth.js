@@ -1,4 +1,5 @@
 import { auth } from "./firebase.js";
+import { config } from "./config.js";
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -9,6 +10,22 @@ import {
 // LOGIN
 export async function login(email, password) {
   return await signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function getUserProfile() {
+  if (!auth.currentUser) return null;
+  const token = await auth.currentUser.getIdToken();
+  const response = await fetch(`${config.backendURL}/api/me/profile`, {
+    headers: {
+      "Authorization": `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo obtener el perfil de usuario");
+  }
+
+  return await response.json();
 }
 
 // LOGOUT
