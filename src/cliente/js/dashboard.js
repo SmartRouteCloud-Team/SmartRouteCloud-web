@@ -50,14 +50,25 @@ async function apiFetch(path) {
 }
 
 function card(title, value) {
+  const safeTitle = escapeHtml(title);
+  const safeValue = escapeHtml(value ?? 0);
   return `
     <div class="col-md-3 mb-3">
       <div class="card p-3">
-        <small class="text-muted">${title}</small>
-        <strong>${value ?? 0}</strong>
+        <small class="text-muted">${safeTitle}</small>
+        <strong>${safeValue}</strong>
       </div>
     </div>
   `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 async function initAdminView() {
@@ -73,7 +84,11 @@ async function initAdminView() {
   }
 
   select.innerHTML = choferes
-    .map((chofer) => `<option value="${chofer.id}">${chofer.nombre || chofer.email || chofer.id}</option>`)
+    .map((chofer) => {
+      const choferId = escapeHtml(chofer.id);
+      const choferName = escapeHtml(chofer.nombre || chofer.email || chofer.id);
+      return `<option value="${choferId}">${choferName}</option>`;
+    })
     .join("");
 
   const renderChoferKpis = async (choferUid) => {
@@ -267,7 +282,12 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   try {
-    const cached = JSON.parse(sessionStorage.getItem("src_profile") || "null");
+    let cached = null;
+    try {
+      cached = JSON.parse(sessionStorage.getItem("src_profile") || "null");
+    } catch (_error) {
+      sessionStorage.removeItem("src_profile");
+    }
     const profile = cached && cached.uid === user.uid ? cached : await getUserProfile();
     sessionStorage.setItem("src_profile", JSON.stringify(profile));
 

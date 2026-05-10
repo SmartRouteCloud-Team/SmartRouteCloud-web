@@ -2,8 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-const { db } = require("../functions/servidor/config/firebaseAdmin");
+const rateLimit = require("express-rate-limit");
 const { verifyToken } = require("../functions/servidor/middleware/auth");
+const { getMyProfile } = require("../functions/servidor/controllers/profileController");
 
 const choferRoutes = require("../functions/servidor/routes/chofer");
 const adminRoutes = require("../functions/servidor/routes/admin");
@@ -17,27 +18,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// API Routes
-app.get("/api/me/profile", verifyToken, async (req, res) => {
-  try {
-    const userDoc = await db.collection("users").doc(req.user.uid).get();
-    if (!userDoc.exists) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    const userData = userDoc.data();
-    return res.json({
-      uid: req.user.uid,
-      email: userData.email || req.user.email || null,
-      nombre: userData.nombre || req.user.name || null,
-      role: userData.role || null,
-      estado: userData.estado || null,
-    });
-  } catch (error) {
-    console.error("profile error:", error);
-    return res.status(500).json({ error: "Error al obtener perfil de usuario" });
-  }
+const profileLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
+
+// API Routes
+app.get("/api/me/profile", profileLimiter, verifyToken, getMyProfile);
 
 app.use("/api/chofer", choferRoutes);
 app.use("/api/admin", adminRoutes);
