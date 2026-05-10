@@ -1,6 +1,6 @@
 // se modificó para que esto salga desde endpoint - patch
 export const firebaseConfig = {
-  apiKey: "AIzaSyCwYKTKq_hmGzdLgBxB8m1xdXTISJ6N5yE",
+  apiKey: "AIzaSyBoLRMJPwWAs_srKz6Tuv_iGTOVjSEsO5I",
   authDomain: "smartroute-60190.firebaseapp.com",
   projectId: "smartroute-60190",
   storageBucket: "smartroute-60190.firebasestorage.app",
