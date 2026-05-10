@@ -1,4 +1,4 @@
-import { login } from "./auth.js";
+import { login, getUserProfile } from "./auth.js";
 
 const btn = document.getElementById("btnLogin");
 const email = document.getElementById("email");
@@ -10,9 +10,13 @@ btn.addEventListener("click", async () => {
 
   try {
     await login(email.value, password.value);
+    const profile = await getUserProfile();
+    if (profile) {
+      sessionStorage.setItem("src_profile", JSON.stringify(profile));
+    }
 
     //  REDIRECCIÓN
-   window.location.href = "/html/dashboard.html";
+    window.location.href = "/html/dashboard.html";
 
   } catch (e) {
     error.textContent = "Correo o contraseña incorrectos";
