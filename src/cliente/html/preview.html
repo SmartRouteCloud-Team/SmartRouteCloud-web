@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Estadísticas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+  <link rel="icon" type="image/png" href="https://icons.iconarchive.com/icons/pixelmixer/basic/64/statistics-icon.png">
+
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: #eef1f5;
+    }
+
+    .login-container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* LADO AMARILLO */
+    .side-yellow {
+      flex: 1;
+      background: radial-gradient(circle, #ffee58, #fbc02d);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #111;
+    }
+
+    .side-white {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      padding: 40px;
+      overflow-y: auto;
+      background: #eef1f5;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+  
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      border-left: 4px solid #fbc02d;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .card p {
+      font-size: 26px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #111;
+    }
+
+    .section {
+      margin-top: 25px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+      border-top: 3px solid #fbc02d;
+    }
+
+    .yellow-text {
+      color: #fbc02d;
+      font-weight: bold;
+    }
+
+    .green { color: #2e7d32; }
+    .red { color: #c62828; }
+
+    .btn {
+      background: #fbc02d;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+
+  <div class="side-yellow">
+    <div style="text-align:center;">
+      <h2>SmartRoute</h2>
+      <p>Panel de esatdisticas</p>
+    </div>
+  </div>
+
+
+  <div class="side-white">
+
+    <h1>Estadísticas del Chofer</h1>
+
+
+    <div class="cards">
+
+      <div class="card">
+        <h3>Total Rutas</h3>
+        <p>12</p>
+      </div>
+
+      <div class="card">
+        <h3>Total Entregas</h3>
+        <p>120</p>
+      </div>
+
+      <div class="card">
+        <h3>Completadas</h3>
+        <p class="green">110</p>
+      </div>
+
+      <div class="card">
+        <h3>Fallidas</h3>
+        <p class="red">10</p>
+      </div>
+
+    </div>
+
+    <div class="section">
+      <h3>Tasa de éxito</h3>
+      <p class="yellow-text" style="font-size:28px;">92%</p>
+    </div>
+
+    <!-- RENDIMIENTO -->
+    <div class="section">
+      <h3>Rendimiento del chofer</h3>
+      <p>✔ Buen nivel de entregas</p>
+      <p>✔ Rutas estables</p>
+      <p>✔ Incidencias controladas</p>
+
+      <button class="btn">Ver detalle</button>
+    </div>
+
+  </div>
+
+</div>
+
+</body>
+</html>
