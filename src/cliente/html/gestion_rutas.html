@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Gestión y Supervisión de Rutas</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:'Montserrat',sans-serif;
+  background:linear-gradient(135deg,#eef1f5,#dfe7f3);
+  color:#1f2937;
+}
+
+.container{
+  max-width:1450px;
+  margin:auto;
+  padding:30px;
+}
+
+/* HEADER */
+
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 22px;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(10px);
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.icon{
+  width:55px;
+  height:55px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#3b82f6,#6366f1);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:24px;
+}
+
+/* KPIS */
+
+.kpi-bar{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+}
+
+.kpi{
+  background:white;
+  padding:18px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+.kpi h4{
+  margin:0;
+  font-size:12px;
+  color:#6b7280;
+}
+
+.kpi p{
+  margin:8px 0 0;
+  font-size:24px;
+  font-weight:bold;
+}
+
+/* CHOFERES */
+
+.chofer-box{
+  margin-top:20px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.driver{
+  background:white;
+  padding:14px;
+  border-radius:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+.capacity{
+  height:10px;
+  background:#e5e7eb;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.capacity-fill{
+  height:100%;
+}
+
+.low{
+  background:#16a34a;
+}
+
+.medium{
+  background:#f59e0b;
+}
+
+.high{
+  background:#dc2626;
+}
+
+/* FORM */
+
+.form{
+  margin-top:20px;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(10px);
+  padding:20px;
+  border-radius:16px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
+}
+
+input,select{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-weight:600;
+}
+
+/* FILTERS */
+
+.filters{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* TABLE */
+
+.table{
+  margin-top:20px;
+  background:white;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1.2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  padding:12px;
+  border-bottom:1px solid #eee;
+  align-items:center;
+  transition:0.2s;
+  cursor:pointer;
+}
+
+.row:hover{
+  background:#f9fafb;
+}
+
+.header{
+  background:#f3f4f6;
+  font-weight:700;
+  cursor:default;
+}
+
+.editing{
+  background:#f3f4f6 !important;
+}
+
+/* BADGES */
+
+.badge{
+  padding:6px 10px;
+  border-radius:999px;
+  color:white;
+  font-size:11px;
+  font-weight:600;
+}
+
+.activa{
+  background:#16a34a;
+}
+
+.inactiva{
+  background:#dc2626;
+}
+
+.pendiente{
+  background:#f59e0b;
+}
+
+/* BUTTONS */
+
+.icon-btn{
+  border:none;
+  cursor:pointer;
+  padding:6px 8px;
+  border-radius:8px;
+  color:white;
+  margin-right:5px;
+}
+
+.edit{
+  background:#f59e0b;
+}
+
+.delete{
+  background:#dc2626;
+}
+
+/* DETAIL */
+
+.detail{
+  margin-top:25px;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(10px);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+.detail-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+/* CHART */
+
+.summary{
+  background:white;
+  padding:18px;
+  border-radius:16px;
+  margin-bottom:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+.chart-row{
+  margin-bottom:18px;
+}
+
+.chart-top{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  font-size:13px;
+  font-weight:600;
+}
+
+.chart-bg{
+  width:100%;
+  height:22px;
+  background:#e5e7eb;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.chart-fill{
+  height:100%;
+  border-radius:999px;
+  transition:0.4s;
+}
+
+/* DELIVERIES */
+
+.delivery-badge{
+  padding:6px 10px;
+  border-radius:999px;
+  color:white;
+  font-size:11px;
+  font-weight:600;
+}
+
+.completed{
+  background:#16a34a;
+}
+
+.process{
+  background:#2563eb;
+}
+
+.failed{
+  background:#dc2626;
+}
+
+.waiting{
+  background:#d97706;
+}
+
+/* MAP */
+
+#map{
+  width:100%;
+  height:500px;
+  border-radius:16px;
+}
+
+@media(max-width:900px){
+
+  .detail-grid{
+    grid-template-columns:1fr;
+  }
+
+  .row{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- HEADER -->
+
+<div class="top-bar">
+
+  <div style="display:flex;gap:12px;align-items:center">
+
+    <div class="icon">🚚</div>
+
+    <div>
+      <h2>Gestión y Supervisión de Rutas</h2>
+      <small>Dashboard logístico en tiempo real</small>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- KPIS -->
+
+<div class="kpi-bar">
+
+  <div class="kpi">
+    <h4>Total Rutas</h4>
+    <p id="total">0</p>
+  </div>
+
+  <div class="kpi">
+    <h4>Activas</h4>
+    <p id="act">0</p>
+  </div>
+
+  <div class="kpi">
+    <h4>Inactivas</h4>
+    <p id="inact">0</p>
+  </div>
+
+  <div class="kpi">
+    <h4>Pendientes</h4>
+    <p id="pend">0</p>
+  </div>
+
+</div>
+
+<!-- CHOFERES -->
+
+<div class="chofer-box" id="drivers"></div>
+
+<!-- FORM -->
+
+<div class="form">
+
+  <input id="nombre" placeholder="Ruta">
+  <input id="origen" placeholder="Origen">
+  <input id="destino" placeholder="Destino">
+
+  <select id="chofer"></select>
+
+  <select id="estado">
+    <option value="pendiente">Pendiente</option>
+    <option value="activa">Activa</option>
+    <option value="inactiva">Inactiva</option>
+  </select>
+
+  <button onclick="add()" style="
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-weight:600;
+  ">
+    Guardar
+  </button>
+
+</div>
+
+<!-- FILTERS -->
+
+<div class="filters">
+
+  <select id="filterEstado" onchange="render()">
+    <option value="all">Todos los estados</option>
+    <option value="activa">Activa</option>
+    <option value="inactiva">Inactiva</option>
+    <option value="pendiente">Pendiente</option>
+  </select>
+
+  <select id="filterChofer" onchange="render()">
+    <option value="all">Todos los choferes</option>
+  </select>
+
+</div>
+
+<!-- TABLE -->
+
+<div class="table">
+
+  <div class="row header">
+    <div>Ruta</div>
+    <div>Origen</div>
+    <div>Destino</div>
+    <div>Chofer</div>
+    <div>Estado</div>
+    <div>Acciones</div>
+    <div>Uso</div>
+  </div>
+
+  <div id="rows"></div>
+
+</div>
+
+<!-- DETAIL -->
+
+<div class="detail">
+
+  <h2>Supervisión de entregas</h2>
+
+  <div class="detail-grid">
+
+    <!-- LEFT -->
+
+    <div>
+
+      <h3 id="detailTitle">
+        Selecciona una ruta
+      </h3>
+
+      <!-- FILTER -->
+
+      <div style="margin-bottom:15px;">
+
+        <select
+          id="deliveryFilter"
+          onchange="filterDeliveries()"
+          style="
+            padding:10px;
+            border-radius:10px;
+            border:1px solid #e5e7eb;
+            font-weight:600;
+            width:220px;
+            background:white;
+          "
+        >
+
+          <option value="all">
+            Todos los pedidos
+          </option>
+
+          <option value="completed">
+            Entregados
+          </option>
+
+          <option value="process">
+            En proceso
+          </option>
+
+          <option value="failed">
+            Fallidos
+          </option>
+
+          <option value="waiting">
+            Pendientes
+          </option>
+
+        </select>
+
+      </div>
+
+      <div id="deliveries"></div>
+
+    </div>
+
+    <!-- MAP -->
+
+    <div>
+
+      <h3>Monitoreo de ubicación</h3>
+
+      <div id="map"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+<script>
+
+const MAX_RUTAS = 3;
+
+let currentRoute = null;
+
+let choferes = [
+
+  {nombre:"Juan Pérez"},
+  {nombre:"Carlos López"},
+  {nombre:"Ana Martínez"}
+
+];
+
+let rutas = [
+
+{
+  id:1,
+  nombre:"Ruta Norte",
+  origen:"CDMX",
+  destino:"Querétaro",
+  chofer:"Juan Pérez",
+  estado:"activa",
+  lat:20.5888,
+  lng:-100.3899,
+
+  entregas:[
+
+    {pedido:"#1001",cliente:"Walmart",direccion:"Querétaro Centro",estado:"completed"},
+    {pedido:"#1002",cliente:"OXXO",direccion:"Juriquilla",estado:"process"},
+    {pedido:"#1003",cliente:"Coppel",direccion:"El Refugio",estado:"failed"},
+    {pedido:"#1004",cliente:"Liverpool",direccion:"Candiles",estado:"completed"},
+    {pedido:"#1005",cliente:"Soriana",direccion:"Centro Sur",estado:"process"},
+    {pedido:"#1006",cliente:"Bodega Aurrera",direccion:"Milenio III",estado:"completed"},
+    {pedido:"#1007",cliente:"Farmacias Guadalajara",direccion:"Tejeda",estado:"failed"}
+
+  ]
+},
+
+{
+  id:2,
+  nombre:"Ruta Sur",
+  origen:"CDMX",
+  destino:"Morelos",
+  chofer:"Carlos López",
+  estado:"pendiente",
+  lat:18.9242,
+  lng:-99.2216,
+
+  entregas:[
+
+    {pedido:"#2001",cliente:"Office Depot",direccion:"Cuernavaca Norte",estado:"completed"},
+    {pedido:"#2002",cliente:"Farmacia San Pablo",direccion:"Temixco",estado:"process"}
+
+  ]
+}
+
+];
+
+let editId = null;
+
+const selChofer = document.getElementById("chofer");
+const filterChofer = document.getElementById("filterChofer");
+
+/* MAP */
+
+const map = L.map('map').setView([19.4326,-99.1332],6);
+
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {
+    attribution:'© OpenStreetMap'
+  }
+).addTo(map);
+
+let marker = null;
+
+/* INIT */
+
+function init(){
+
+  selChofer.innerHTML="";
+  filterChofer.innerHTML='<option value="all">Todos los choferes</option>';
+
+  choferes.forEach(c=>{
+
+    selChofer.innerHTML += `<option>${c.nombre}</option>`;
+
+    filterChofer.innerHTML += `
+      <option value="${c.nombre}">
+        ${c.nombre}
+      </option>
+    `;
+
+  });
+
+}
+
+/* COUNT */
+
+function countRoutes(name){
+
+  return rutas.filter(r=>r.chofer===name).length;
+
+}
+
+/* DRIVERS */
+
+function renderDrivers(){
+
+  const box = document.getElementById("drivers");
+
+  box.innerHTML="";
+
+  choferes.forEach(c=>{
+
+    const count = countRoutes(c.nombre);
+
+    const percent = (count/MAX_RUTAS)*100;
+
+    let color="low";
+
+    if(percent>=70) color="high";
+    else if(percent>=40) color="medium";
+
+    box.innerHTML += `
+
+      <div class="driver">
+
+        <h4>${c.nombre}</h4>
+
+        <div>${count}/${MAX_RUTAS} rutas</div>
+
+        <div class="capacity">
+
+          <div
+            class="capacity-fill ${color}"
+            style="width:${percent}%">
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+  });
+
+}
+
+/* TABLE */
+
+function render(){
+
+  const fEstado =
+    document.getElementById("filterEstado").value;
+
+  const fChofer =
+    document.getElementById("filterChofer").value;
+
+  const rows =
+    document.getElementById("rows");
+
+  rows.innerHTML="";
+
+  let act=0;
+  let inact=0;
+  let pend=0;
+
+  rutas.forEach(r=>{
+
+    if(fEstado!=="all" && r.estado!==fEstado) return;
+    if(fChofer!=="all" && r.chofer!==fChofer) return;
+
+    if(r.estado==="activa") act++;
+    if(r.estado==="inactiva") inact++;
+    if(r.estado==="pendiente") pend++;
+
+    const editing = editId===r.id;
+
+    const uso = countRoutes(r.chofer);
+
+    rows.innerHTML += `
+
+      <div
+        class="row ${editing?'editing':''}"
+        onclick="showDetail(${r.id})"
+      >
+
+        <div>${r.nombre}</div>
+        <div>${r.origen}</div>
+        <div>${r.destino}</div>
+        <div>${r.chofer}</div>
+
+        <div>
+          <span class="badge ${r.estado}">
+            ${r.estado}
+          </span>
+        </div>
+
+        <div>
+
+          <button
+            class="icon-btn edit"
+            onclick="event.stopPropagation();edit(${r.id})"
+          >
+            ✏️
+          </button>
+
+          <button
+            class="icon-btn delete"
+            onclick="event.stopPropagation();del(${r.id})"
+          >
+            ✖
+          </button>
+
+        </div>
+
+        <div>${uso}/${MAX_RUTAS}</div>
+
+      </div>
+
+    `;
+  });
+
+  document.getElementById("total").innerText=rutas.length;
+  document.getElementById("act").innerText=act;
+  document.getElementById("inact").innerText=inact;
+  document.getElementById("pend").innerText=pend;
+
+  renderDrivers();
+
+}
+
+/* DETAIL */
+
+function showDetail(id){
+
+  currentRoute = rutas.find(r=>r.id===id);
+
+  document.getElementById("detailTitle").innerText =
+    `${currentRoute.nombre} - ${currentRoute.chofer}`;
+
+  renderDeliveries();
+
+  if(marker) map.removeLayer(marker);
+
+  marker = L.marker([
+    currentRoute.lat,
+    currentRoute.lng
+  ]).addTo(map);
+
+  marker.bindPopup(`
+    <b>${currentRoute.chofer}</b><br>
+    ${currentRoute.nombre}
+  `).openPopup();
+
+  map.setView([
+    currentRoute.lat,
+    currentRoute.lng
+  ],10);
+
+}
+
+/* FILTER */
+
+function filterDeliveries(){
+
+  renderDeliveries();
+
+}
+
+/* CHART BAR */
+
+function chartBar(label,value,total,color){
+
+  const percent = total===0 ? 0 : (value/total)*100;
+
+  return `
+
+    <div class="chart-row">
+
+      <div class="chart-top">
+
+        <span>${label}</span>
+
+        <span>${value}</span>
+
+      </div>
+
+      <div class="chart-bg">
+
+        <div
+          class="chart-fill"
+          style="
+            width:${percent}%;
+            background:${color};
+          ">
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+}
+
+/* ACCORDION */
+
+function toggleAccordion(index){
+
+  const acc =
+    document.getElementById(`accordion-${index}`);
+
+  const arrow =
+    document.getElementById(`arrow-${index}`);
+
+  if(acc.style.maxHeight && acc.style.maxHeight!=="0px"){
+
+    acc.style.maxHeight="0px";
+
+    arrow.style.transform="rotate(0deg)";
+
+  }else{
+
+    acc.style.maxHeight =
+      acc.scrollHeight + "px";
+
+    arrow.style.transform="rotate(180deg)";
+
+  }
+
+}
+
+/* DELIVERIES */
+
+function renderDeliveries(){
+
+  if(!currentRoute) return;
+
+  const filter =
+    document.getElementById("deliveryFilter").value;
+
+  const deliveries =
+    document.getElementById("deliveries");
+
+  deliveries.innerHTML="";
+
+  const filtered = currentRoute.entregas.filter(e=>{
+
+    if(filter==="all") return true;
+
+    return e.estado===filter;
+
+  });
+
+  const total = currentRoute.entregas.length;
+
+  const completed =
+    currentRoute.entregas.filter(e=>e.estado==="completed").length;
+
+  const failed =
+    currentRoute.entregas.filter(e=>e.estado==="failed").length;
+
+  const process =
+    currentRoute.entregas.filter(e=>e.estado==="process").length;
+
+  const waiting =
+    currentRoute.entregas.filter(e=>e.estado==="waiting").length;
+
+  /* SUMMARY */
+
+  deliveries.innerHTML += `
+
+    <div class="summary">
+
+      <h3 style="margin-top:0">
+        Resumen operativo
+      </h3>
+
+      ${chartBar("Total pedidos",total,total,"#6366f1")}
+      ${chartBar("Entregados",completed,total,"#16a34a")}
+      ${chartBar("Fallidos",failed,total,"#dc2626")}
+      ${chartBar("En proceso",process,total,"#2563eb")}
+      ${chartBar("Pendientes",waiting,total,"#d97706")}
+
+    </div>
+
+  `;
+
+  /* ACCORDIONS */
+
+  filtered.forEach((e,index)=>{
+
+    let label="Pendiente";
+
+    if(e.estado==="completed") label="Entregado";
+    if(e.estado==="process") label="En proceso";
+    if(e.estado==="failed") label="Fallido";
+
+    deliveries.innerHTML += `
+
+      <div
+        style="
+          background:white;
+          border-radius:14px;
+          margin-bottom:12px;
+          overflow:hidden;
+          box-shadow:0 8px 18px rgba(0,0,0,0.05);
+        "
+      >
+
+        <!-- HEADER -->
+
+        <div
+          onclick="toggleAccordion(${index})"
+          style="
+            padding:16px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            cursor:pointer;
+            background:#f9fafb;
+          "
+        >
+
+          <div>
+
+            <strong>${e.pedido}</strong>
+
+            <br>
+
+            <small style="color:#6b7280">
+              ${e.cliente}
+            </small>
+
+          </div>
+
+          <div style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+          ">
+
+            <div class="delivery-badge ${e.estado}">
+              ${label}
+            </div>
+
+            <div
+              id="arrow-${index}"
+              style="
+                font-size:18px;
+                transition:0.3s;
+              "
+            >
+              ▼
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- CONTENT -->
+
+        <div
+          id="accordion-${index}"
+          style="
+            max-height:0;
+            overflow:hidden;
+            transition:max-height 0.35s ease;
+            background:white;
+          "
+        >
+
+          <div style="padding:18px;">
+
+            <div style="margin-bottom:12px;">
+
+              <strong>Cliente:</strong>
+
+              <div style="margin-top:4px;color:#374151;">
+                ${e.cliente}
+              </div>
+
+            </div>
+
+            <div style="margin-bottom:12px;">
+
+              <strong>Dirección:</strong>
+
+              <div style="margin-top:4px;color:#374151;">
+                ${e.direccion}
+              </div>
+
+            </div>
+
+            <div style="margin-bottom:12px;">
+
+              <strong>Número de pedido:</strong>
+
+              <div style="margin-top:4px;color:#374151;">
+                ${e.pedido}
+              </div>
+
+            </div>
+
+            <div>
+
+              <strong>Estatus:</strong>
+
+              <div style="margin-top:8px;">
+
+                <span class="delivery-badge ${e.estado}">
+                  ${label}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+  });
+
+}
+
+/* CRUD */
+
+function add(){
+
+  const n=document.getElementById("nombre").value;
+  const o=document.getElementById("origen").value;
+  const d=document.getElementById("destino").value;
+  const c=document.getElementById("chofer").value;
+  const s=document.getElementById("estado").value;
+
+  if(editId){
+
+    const r=rutas.find(x=>x.id===editId);
+
+    Object.assign(r,{
+      nombre:n,
+      origen:o,
+      destino:d,
+      chofer:c,
+      estado:s
+    });
+
+    editId=null;
+
+  }else{
+
+    rutas.push({
+
+      id:Date.now(),
+      nombre:n,
+      origen:o,
+      destino:d,
+      chofer:c,
+      estado:s,
+      lat:19.43,
+      lng:-99.13,
+      entregas:[]
+
+    });
+
+  }
+
+  render();
+
+}
+
+/* EDIT */
+
+function edit(id){
+
+  const r=rutas.find(x=>x.id===id);
+
+  document.getElementById("nombre").value=r.nombre;
+  document.getElementById("origen").value=r.origen;
+  document.getElementById("destino").value=r.destino;
+  document.getElementById("chofer").value=r.chofer;
+  document.getElementById("estado").value=r.estado;
+
+  editId=id;
+
+  render();
+
+}
+
+/* DELETE */
+
+function del(id){
+
+  rutas = rutas.filter(r=>r.id!==id);
+
+  render();
+
+}
+
+init();
+render();
+
+</script>
+
+</body>
+</html>
