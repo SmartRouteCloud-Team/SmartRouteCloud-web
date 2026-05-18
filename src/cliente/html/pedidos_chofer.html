@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Vista Chofer Operación</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:'Montserrat',sans-serif;
+background:linear-gradient(135deg,#eef1f5,#dfe7f3);
+}
+
+.container{padding:25px;max-width:1400px;margin:auto}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(255,255,255,0.7);
+padding:18px;
+border-radius:16px;
+backdrop-filter:blur(10px);
+}
+
+.icon{
+width:55px;height:55px;
+border-radius:14px;
+background:linear-gradient(135deg,#2563eb,#6366f1);
+display:flex;align-items:center;justify-content:center;
+color:white;font-size:22px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px;
+margin-top:18px;
+}
+
+.card{
+background:rgba(255,255,255,0.75);
+backdrop-filter:blur(10px);
+padding:18px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.06);
+}
+
+/* ROUTE */
+.point{
+display:flex;
+align-items:center;
+gap:12px;
+padding:12px;
+border-radius:12px;
+cursor:pointer;
+margin-bottom:10px;
+background:white;
+}
+
+.point:hover{background:#f3f4f6}
+
+.num{font-weight:700;color:#6b7280;width:20px}
+
+.dot{width:14px;height:14px;border-radius:50%}
+
+.pending{background:#d97706}
+.process{background:#2563eb}
+.completed{background:#16a34a}
+.failed{background:#dc2626}
+
+/* DETAIL */
+.status-box{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+}
+
+.badge{
+padding:6px 10px;
+border-radius:999px;
+color:white;
+font-size:11px;
+font-weight:600;
+}
+
+.actions{
+margin-top:12px;
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+}
+
+.actions button{
+border:none;
+padding:10px 12px;
+border-radius:10px;
+color:white;
+cursor:pointer;
+font-weight:600;
+}
+
+.blue{background:#2563eb}
+.green{background:#16a34a}
+.red{background:#dc2626}
+
+/* INCIDENTES */
+textarea,select{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #e5e7eb;
+margin-top:8px;
+}
+
+.inc-btn{
+margin-top:10px;
+background:linear-gradient(135deg,#f59e0b,#d97706);
+border:none;
+padding:12px;
+border-radius:12px;
+color:white;
+cursor:pointer;
+font-weight:600;
+}
+
+.inc{
+background:white;
+padding:10px;
+border-radius:10px;
+margin-top:8px;
+font-size:13px;
+}
+
+/* MAP */
+#map{height:420px;border-radius:16px}
+
+/* MODAL */
+#modalPass{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.5);
+backdrop-filter:blur(5px);
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+.modal-box{
+background:white;
+padding:22px;
+border-radius:16px;
+width:320px;
+box-shadow:0 20px 50px rgba(0,0,0,0.3);
+}
+
+.modal-box input{
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #e5e7eb;
+margin-top:10px;
+}
+
+.modal-actions{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+.modal-actions button{
+flex:1;
+padding:10px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:600;
+}
+
+.cancel{background:#e5e7eb}
+.ok{background:#2563eb;color:white}
+
+.error{
+color:#dc2626;
+font-size:12px;
+display:none;
+margin-top:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="top">
+
+<div style="display:flex;gap:12px;align-items:center">
+<div class="icon">🚚</div>
+
+<div>
+<h3 style="margin:0">Vista Chofer</h3>
+<small id="driverName">Juan Pérez</small>
+</div>
+
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h3>Ruta asignada</h3>
+<div id="route"></div>
+</div>
+
+<div class="card">
+<h3>Detalle del pedido</h3>
+<div id="detail">Selecciona un pedido</div>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h3>Mapa</h3>
+<div id="map"></div>
+</div>
+
+<div class="card">
+
+<h3>Incidencias</h3>
+
+<select id="incTarget"></select>
+
+<textarea id="incText" placeholder="Describe incidencia..."></textarea>
+
+<button class="inc-btn" onclick="addInc()">
+Registrar incidencia
+</button>
+
+<div id="incList"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modalPass">
+
+<div class="modal-box">
+
+<h3>Validación requerida</h3>
+<p style="color:#6b7280;font-size:13px;">
+Entrega mayor a $15,000 requiere autorización
+</p>
+
+<input type="password" id="passInput" placeholder="Contraseña">
+
+<p id="passError" class="error">Contraseña incorrecta</p>
+
+<div class="modal-actions">
+
+<button class="cancel" onclick="closeModal()">Cancelar</button>
+<button class="ok" onclick="checkPass()">Validar</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const PASSWORD="1234";
+
+/* CHOFER FIJO (sin selector) */
+const currentDriverId = 0;
+let current = currentDriverId;
+let selected=null;
+let pendingStatus=null;
+
+const drivers=[
+
+{
+nombre:"Juan Pérez",
+ruta:[
+{pedido:"#1001",cliente:"Walmart",dir:"Querétaro",valor:12000,estado:"completed",lat:20.5,lng:-100.3},
+{pedido:"#1002",cliente:"OXXO",dir:"Juriquilla",valor:18000,estado:"process",lat:20.6,lng:-100.4},
+{pedido:"#1003",cliente:"Coppel",dir:"Refugio",valor:8000,estado:"pending",lat:20.65,lng:-100.35}
+],
+incidencias:[]
+}
+
+];
+
+/* INIT NAME */
+document.getElementById("driverName").innerText =
+drivers[current].nombre;
+
+/* MAP */
+const map=L.map('map').setView([19.4,-99.1],6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap'
+}).addTo(map);
+
+let markers=[];
+let line;
+
+/* ROUTE */
+function renderRoute(){
+
+const box=document.getElementById("route");
+box.innerHTML="";
+
+drivers[current].ruta.forEach((p,i)=>{
+
+box.innerHTML+=`
+
+<div class="point" onclick="select(${i})">
+
+<div class="num">${i+1}</div>
+
+<div class="dot ${p.estado}"></div>
+
+<div>
+<strong>${p.pedido}</strong><br>
+<small>${p.cliente} - $${p.valor}</small>
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+/* SELECT */
+function select(i){
+selected=i;
+renderDetail();
+}
+
+/* DETAIL */
+function renderDetail(){
+
+if(selected===null){
+document.getElementById("detail").innerHTML="Selecciona un pedido";
+return;
+}
+
+const p=drivers[current].ruta[selected];
+
+document.getElementById("detail").innerHTML=`
+
+<div class="status-box">
+
+<div>
+<strong>${p.pedido}</strong><br>
+<small>${p.cliente} - $${p.valor}</small>
+</div>
+
+<span class="badge ${p.estado}">
+${p.estado}
+</span>
+
+</div>
+
+<div class="actions">
+
+<button class="blue" onclick="set('process')">Proceso</button>
+<button class="green" onclick="set('completed')">Entregada</button>
+<button class="red" onclick="set('failed')">Fallida</button>
+
+</div>
+
+`;
+
+}
+
+/* STATUS */
+function set(status){
+
+const p=drivers[current].ruta[selected];
+
+if(status==="completed" && p.valor>15000){
+openModal(status);
+return;
+}
+
+applyStatus(status);
+}
+
+/* APPLY */
+function applyStatus(status){
+
+drivers[current].ruta[selected].estado=status;
+
+render();
+renderDetail();
+}
+
+/* MODAL */
+function openModal(status){
+
+pendingStatus=status;
+
+document.getElementById("modalPass").style.display="flex";
+document.getElementById("passInput").value="";
+document.getElementById("passError").style.display="none";
+
+}
+
+function closeModal(){
+document.getElementById("modalPass").style.display="none";
+pendingStatus=null;
+}
+
+function checkPass(){
+
+const pass=document.getElementById("passInput").value;
+
+if(pass!==PASSWORD){
+document.getElementById("passError").style.display="block";
+return;
+}
+
+closeModal();
+
+applyStatus(pendingStatus);
+pendingStatus=null;
+
+}
+
+/* INCIDENCIAS */
+function updateIncSelect(){
+
+const sel=document.getElementById("incTarget");
+sel.innerHTML=`<option value="general">Incidencia general</option>`;
+
+drivers[current].ruta.forEach((p,i)=>{
+
+sel.innerHTML+=`
+<option value="${i}">
+Pedido ${p.pedido}
+</option>
+`;
+
+});
+
+}
+
+function addInc(){
+
+const txt=document.getElementById("incText").value;
+const target=document.getElementById("incTarget").value;
+
+if(!txt.trim()) return;
+
+let label = target==="general"
+? "General"
+: "Pedido "+drivers[current].ruta[target].pedido;
+
+drivers[current].incidencias.push({
+text:txt,
+target:label
+});
+
+document.getElementById("incText").value="";
+renderInc();
+
+}
+
+function renderInc(){
+
+const box=document.getElementById("incList");
+box.innerHTML="";
+
+drivers[current].incidencias.forEach(i=>{
+
+box.innerHTML+=`
+<div class="inc">
+<strong>${i.target}</strong><br>
+${i.text}
+</div>
+`;
+
+});
+
+}
+
+/* MAP */
+function renderMap(){
+
+markers.forEach(m=>map.removeLayer(m));
+markers=[];
+
+if(line) map.removeLayer(line);
+
+const r=drivers[current].ruta.map(p=>[p.lat,p.lng]);
+
+line=L.polyline(r,{color:"#2563eb"}).addTo(map);
+
+r.forEach((p,i)=>{
+
+const m=L.marker(p).addTo(map)
+.bindPopup(drivers[current].ruta[i].pedido);
+
+markers.push(m);
+
+});
+
+map.fitBounds(line.getBounds());
+
+}
+
+/* MAIN */
+function render(){
+renderRoute();
+renderDetail();
+renderInc();
+updateIncSelect();
+renderMap();
+}
+
+render();
+
+</script>
+
+</body>
+</html>
