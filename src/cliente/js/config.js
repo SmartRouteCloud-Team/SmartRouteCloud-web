@@ -9,13 +9,8 @@ export const firebaseConfig = {
   measurementId: "G-7Y2ZHNS1DV"
 };
 
+// se modificó para que esto salga desde endpoint - patch
 export const config = {
-  backendURL: "https://us-central1-smartroute-60190.cloudfunctions.net",
-  tomtomKey: ""
+  backendURL: "https://us-central1-smartroute-60190.cloudfunctions.net/api",
+  tomtomKey: "" // agregar TomTom API Key aquí - get it from https://developer.tomtom.com/
 };
-
-export function buildBackendUrl(path = "") {
-  const base = String(config.backendURL || "").replace(/\/+$/, "");
-  const normalizedPath = `/${String(path || "").replace(/^\/+/, "")}`;
-  return `${base}${normalizedPath}`;
-}
