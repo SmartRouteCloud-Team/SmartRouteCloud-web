@@ -36,7 +36,7 @@ function renderRoute() {
 
   driverData.ruta.forEach((p, i) => {
     box.innerHTML += `
-      <div class="point" onclick="select(${i})">
+      <div class="point point-item" data-index="${i}">
         <div class="num">${i + 1}</div>
         <div class="dot ${p.estado}"></div>
         <div>
@@ -45,6 +45,13 @@ function renderRoute() {
         </div>
       </div>
     `;
+  });
+
+  box.querySelectorAll(".point-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const index = Number(item.dataset.index);
+      if (!Number.isNaN(index)) select(index);
+    });
   });
 }
 
@@ -64,11 +71,19 @@ function renderDetail() {
       <span class="badge ${p.estado}">${p.estado}</span>
     </div>
     <div class="actions">
-      <button class="blue" onclick="set('process')">Proceso</button>
-      <button class="green" onclick="set('completed')">Entregada</button>
-      <button class="red" onclick="set('failed')">Fallida</button>
+      <button class="blue status-action" data-status="process">Proceso</button>
+      <button class="green status-action" data-status="completed">Entregada</button>
+      <button class="red status-action" data-status="failed">Fallida</button>
     </div>
   `;
+
+  document.querySelectorAll(".status-action").forEach((button) => {
+    button.addEventListener("click", () => {
+      const status = button.dataset.status;
+      if (!status) return;
+      applyStatus(status).catch((error) => alert(`Error: ${error.message}`));
+    });
+  });
 }
 
 async function applyStatus(status) {
@@ -172,7 +187,6 @@ async function init() {
 }
 
 window.select = select;
-window.set = (status) => applyStatus(status).catch((error) => alert(`Error: ${error.message}`));
 window.addInc = addInc;
 
 init().catch((error) => {

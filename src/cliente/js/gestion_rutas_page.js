@@ -154,7 +154,7 @@ function renderDeliveries() {
   box.innerHTML = filtered
     .map((d, index) => `
       <div class="delivery-card">
-        <div class="delivery-header" onclick="toggleAccordion(${index})">
+        <div class="delivery-header delivery-toggle" data-index="${index}">
           <div><strong>${escapeHtml(d.pedido)}</strong> - ${escapeHtml(d.cliente)}</div>
           <span class="delivery-badge ${escapeHtml(d.estado)}">${escapeHtml(d.estado)}</span>
         </div>
@@ -164,6 +164,13 @@ function renderDeliveries() {
       </div>
     `)
     .join("");
+
+  box.querySelectorAll(".delivery-toggle").forEach((item) => {
+    item.addEventListener("click", () => {
+      const index = Number(item.dataset.index);
+      if (!Number.isNaN(index)) toggleAccordion(index);
+    });
+  });
 }
 
 function render() {

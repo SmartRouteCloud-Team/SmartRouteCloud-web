@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 export async function waitForUser() {
   if (auth.currentUser) return auth.currentUser;
 
-  return await new Promise((resolve) => {
+  return new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       unsubscribe();
       resolve(user || null);
