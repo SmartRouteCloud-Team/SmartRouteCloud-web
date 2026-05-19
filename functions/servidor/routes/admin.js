@@ -5,11 +5,13 @@ const { verifyToken } = require("../middleware/auth");
 const { requirePermission } = require("../middleware/permissions");
 const {
   getMisChoferes,
+  getMisRutas,
   getRutaActualChofer,
   getHistorialChofer,
   getKpisChofer,
   getReporteEquipo,
   crearRuta,
+  actualizarRuta,
   asignarChoferRuta,
   cambiarEstadoRuta,
 } = require("../controllers/adminController");
@@ -27,6 +29,9 @@ router.use(verifyToken);
 // GET /api/admin/mis-choferes
 router.get("/mis-choferes", requirePermission("choferes:ver"), getMisChoferes);
 
+// GET /api/admin/rutas
+router.get("/rutas", requirePermission("rutas:ver"), getMisRutas);
+
 // GET /api/admin/choferes/:id/ruta-actual
 router.get("/choferes/:id/ruta-actual", requirePermission("choferes:ver"), getRutaActualChofer);
 
@@ -41,6 +46,9 @@ router.get("/reportes/mi-equipo", requirePermission("reportes:ver_equipo"), getR
 
 // POST /api/admin/rutas
 router.post("/rutas", requirePermission("rutas:crear"), crearRuta);
+
+// PUT /api/admin/rutas/:id
+router.put("/rutas/:id", requirePermission("rutas:actualizar"), actualizarRuta);
 
 // PUT /api/admin/rutas/:id/asignar
 router.put("/rutas/:id/asignar", requirePermission("rutas:asignar"), asignarChoferRuta);

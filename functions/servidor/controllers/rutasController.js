@@ -163,12 +163,42 @@ async function cargarMasivo(req, res) {
         updatedAt: new Date(),
       };
 
+      const routeRef = db.collection("routes").doc(rutaId);
+      const routeDoc = await routeRef.get();
+      const dashboardRouteData = {
+        codigo: rutaId,
+        creadoPor: req.user.uid,
+        choferAsignado: null,
+        fechaProgramada: new Date(horario),
+        estado: "pendiente",
+        origen: rutaData.origen,
+        destino: rutaData.destino,
+        entregas: datos.entregas.map((entrega) => ({
+          id: entrega.idPedido || `ENT-${unidadId}-${entrega.ordenEntrega}`,
+          estado: "pendiente",
+          destinatario: `Destinatario ${entrega.idPedido || entrega.ordenEntrega}`,
+          direccion: `${entrega.calle} ${entrega.numero}, ${entrega.ciudad}`,
+          latitud: entrega.latitud,
+          longitud: entrega.longitud,
+          lat: entrega.latitud,
+          lng: entrega.longitud,
+        })),
+        createdAt: routeDoc.exists ? routeDoc.data().createdAt || new Date() : new Date(),
+        updatedAt: new Date(),
+      };
+
       if (rutaDoc.exists) {
         batch.update(rutaRef, rutaData);
         resumen.rutas.actualizadas++;
       } else {
         batch.set(rutaRef, { ...rutaData, createdAt: new Date() });
         resumen.rutas.creadas++;
+      }
+
+      if (routeDoc.exists) {
+        batch.update(routeRef, dashboardRouteData);
+      } else {
+        batch.set(routeRef, dashboardRouteData);
       }
 
       await batch.commit();

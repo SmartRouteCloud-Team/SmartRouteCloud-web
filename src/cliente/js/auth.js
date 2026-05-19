@@ -1,5 +1,5 @@
 import { auth } from "./firebase.js";
-import { config } from "./config.js";
+import { buildBackendUrl } from "./config.js";
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -15,7 +15,7 @@ export async function login(email, password) {
 export async function getUserProfile() {
   if (!auth.currentUser) return null;
   const token = await auth.currentUser.getIdToken();
-  const response = await fetch(`${config.backendURL}/api/me/profile`, {
+  const response = await fetch(buildBackendUrl("/api/me/profile"), {
     headers: {
       "Authorization": `Bearer ${token}`,
     },

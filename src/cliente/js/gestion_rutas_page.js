@@ -2,11 +2,13 @@ import { apiFetch, getProfileOrRedirect } from "./pageAuth.js";
 
 const MAX_RUTAS = 3;
 const DEFAULT_MAP_CENTER = { lat: 19.4326, lng: -99.1332 };
+const VALID_ROUTE_STATES = new Set(["pendiente", "activa", "completada", "cancelada"]);
 let currentRoute = null;
 let editId = null;
 let choferes = [];
 let rutas = [];
 let marker = null;
+let currentRole = "";
 
 const selChofer = document.getElementById("chofer");
 const filterChofer = document.getElementById("filterChofer");
@@ -30,15 +32,11 @@ function encodeId(id) {
 }
 
 function uiStateFromBackend(estado) {
-  if (estado === "activa") return "activa";
-  if (estado === "pendiente") return "pendiente";
-  return "inactiva";
+  return VALID_ROUTE_STATES.has(estado) ? estado : "pendiente";
 }
 
 function backendStateFromUi(estado) {
-  if (estado === "activa") return "activa";
-  if (estado === "pendiente") return "pendiente";
-  return "cancelada";
+  return VALID_ROUTE_STATES.has(estado) ? estado : "pendiente";
 }
 
 function mapEntregaState(estado) {
@@ -54,6 +52,7 @@ function getChoferName(uid) {
 }
 
 function normalizeRoute(route) {
+  const firstEntrega = Array.isArray(route.entregas) ? route.entregas[0] : null;
   return {
     id: route.id,
     nombre: route.codigo || route.nombre || `Ruta-${route.id}`,
@@ -62,8 +61,8 @@ function normalizeRoute(route) {
     choferUid: route.choferAsignado || null,
     chofer: getChoferName(route.choferAsignado),
     estado: uiStateFromBackend(route.estado),
-    lat: route.lat ?? route.ubicacionActual?.lat ?? DEFAULT_MAP_CENTER.lat,
-    lng: route.lng ?? route.ubicacionActual?.lng ?? DEFAULT_MAP_CENTER.lng,
+    lat: route.lat ?? route.ubicacionActual?.lat ?? firstEntrega?.lat ?? firstEntrega?.latitud ?? DEFAULT_MAP_CENTER.lat,
+    lng: route.lng ?? route.ubicacionActual?.lng ?? firstEntrega?.lng ?? firstEntrega?.longitud ?? DEFAULT_MAP_CENTER.lng,
     entregas: (route.entregas || []).map((e, idx) => ({
       pedido: e.id || e.pedido || `#${idx + 1}`,
       cliente: e.cliente || e.destinatario || "Cliente",
@@ -74,26 +73,19 @@ function normalizeRoute(route) {
 }
 
 async function loadChoferes() {
-  try {
-    const data = await apiFetch("/api/ti/todos-choferes");
-    choferes = data.choferes || [];
-  } catch {
-    const data = await apiFetch("/api/admin/mis-choferes");
-    choferes = data.choferes || [];
-  }
+  const endpoint = currentRole === "TI" ? "/api/ti/todos-choferes" : "/api/admin/mis-choferes";
+  const data = await apiFetch(endpoint);
+  choferes = data.choferes || [];
 }
 
 async function loadRutas() {
-  try {
-    const data = await apiFetch("/api/ti/todas-rutas");
-    rutas = (data.rutas || []).map(normalizeRoute);
-  } catch {
-    rutas = [];
-  }
+  const endpoint = currentRole === "TI" ? "/api/ti/todas-rutas" : "/api/admin/rutas";
+  const data = await apiFetch(endpoint);
+  rutas = (data.rutas || []).map(normalizeRoute);
 }
 
 function initSelects() {
-  selChofer.innerHTML = "";
+  selChofer.innerHTML = '<option value="">Sin asignar</option>';
   filterChofer.innerHTML = '<option value="all">Todos los choferes</option>';
 
   choferes.forEach((c) => {
@@ -183,14 +175,16 @@ function render() {
   let act = 0;
   let inact = 0;
   let pend = 0;
+  let total = 0;
 
   rutas.forEach((r) => {
     if (fEstado !== "all" && r.estado !== fEstado) return;
     if (fChofer !== "all" && r.choferUid !== fChofer) return;
 
+    total += 1;
     if (r.estado === "activa") act += 1;
-    if (r.estado === "inactiva") inact += 1;
     if (r.estado === "pendiente") pend += 1;
+    if (r.estado === "completada" || r.estado === "cancelada") inact += 1;
 
     const editing = editId === r.id;
     const uso = r.choferUid ? countRoutes(r.choferUid) : 0;
@@ -232,7 +226,7 @@ function render() {
     });
   });
 
-  document.getElementById("total").innerText = rutas.length;
+  document.getElementById("total").innerText = total;
   document.getElementById("act").innerText = act;
   document.getElementById("inact").innerText = inact;
   document.getElementById("pend").innerText = pend;
@@ -261,6 +255,8 @@ function showDetailByEncoded(encodedId) {
 
 async function add() {
   const nombre = document.getElementById("nombre").value.trim();
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
   const estadoUi = document.getElementById("estado").value;
   const choferUid = document.getElementById("chofer").value;
 
@@ -270,6 +266,16 @@ async function add() {
   }
 
   if (editId) {
+    await apiFetch(`/api/admin/rutas/${editId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        codigo: nombre,
+        origen,
+        destino,
+      }),
+    });
+
     if (choferUid) {
       await apiFetch(`/api/admin/rutas/${editId}/asignar`, {
         method: "PUT",
@@ -289,6 +295,8 @@ async function add() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         codigo: nombre,
+        origen,
+        destino,
         fechaProgramada: new Date().toISOString(),
         entregas: [],
       }),
@@ -312,6 +320,11 @@ async function add() {
   }
 
   editId = null;
+  document.getElementById("nombre").value = "";
+  document.getElementById("origen").value = "";
+  document.getElementById("destino").value = "";
+  document.getElementById("chofer").value = "";
+  document.getElementById("estado").value = "pendiente";
   await loadRutas();
   render();
 }
@@ -365,7 +378,9 @@ window.filterDeliveries = filterDeliveries;
 window.toggleAccordion = toggleAccordion;
 
 async function init() {
-  await getProfileOrRedirect();
+  const profile = await getProfileOrRedirect();
+  if (!profile) return;
+  currentRole = (profile.role || "").toUpperCase();
   await loadChoferes();
   await loadRutas();
   initSelects();
