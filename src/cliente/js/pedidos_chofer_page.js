@@ -115,7 +115,16 @@ function addInc() {
   const target = document.getElementById("incTarget").value;
   if (!txt.trim()) return;
 
-  const label = target === "general" ? "General" : `Pedido ${driverData.ruta[target].pedido}`;
+  let label = "General";
+  if (target !== "general") {
+    const idx = Number(target);
+    if (Number.isNaN(idx) || idx < 0 || idx >= driverData.ruta.length) {
+      alert("No se pudo asociar la incidencia al pedido seleccionado.");
+      return;
+    }
+    label = `Pedido ${driverData.ruta[idx].pedido}`;
+  }
+
   driverData.incidencias.push({ text: txt, target: label });
   document.getElementById("incText").value = "";
   renderInc();

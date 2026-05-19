@@ -197,19 +197,38 @@ function render() {
     const encodedId = encodeId(r.id);
 
     rows.innerHTML += `
-      <div class="row ${editing ? "editing" : ""}" onclick="showDetailByEncoded('${encodedId}')">
+      <div class="row route-row ${editing ? "editing" : ""}" data-route-id="${encodedId}">
         <div>${escapeHtml(r.nombre)}</div>
         <div>${escapeHtml(r.origen)}</div>
         <div>${escapeHtml(r.destino)}</div>
         <div>${escapeHtml(r.chofer)}</div>
         <div><span class="badge ${escapeHtml(r.estado)}">${escapeHtml(r.estado)}</span></div>
         <div>
-          <button class="icon-btn edit" onclick="event.stopPropagation();editByEncoded('${encodedId}')">✏️</button>
-          <button class="icon-btn delete" onclick="event.stopPropagation();delByEncoded('${encodedId}')">✖</button>
+          <button class="icon-btn edit route-action" data-action="edit" data-route-id="${encodedId}">✏️</button>
+          <button class="icon-btn delete route-action" data-action="delete" data-route-id="${encodedId}">✖</button>
         </div>
         <div>${uso}/${MAX_RUTAS}</div>
       </div>
     `;
+  });
+
+  rows.querySelectorAll(".route-row").forEach((row) => {
+    row.addEventListener("click", () => {
+      const encodedId = row.dataset.routeId;
+      if (!encodedId) return;
+      showDetailByEncoded(encodedId);
+    });
+  });
+
+  rows.querySelectorAll(".route-action").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const encodedId = button.dataset.routeId;
+      const action = button.dataset.action;
+      if (!encodedId || !action) return;
+      if (action === "edit") editByEncoded(encodedId);
+      if (action === "delete") delByEncoded(encodedId);
+    });
   });
 
   document.getElementById("total").innerText = rutas.length;
@@ -311,7 +330,8 @@ function edit(id) {
 }
 
 function del(id) {
-  alert(`No existe endpoint para eliminar la ruta ${id} en backend actualmente.`);
+  console.warn(`No existe endpoint para eliminar la ruta ${id} en backend actualmente.`);
+  alert("Esta función no está disponible en este momento.");
 }
 
 function editByEncoded(encodedId) {

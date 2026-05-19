@@ -11,6 +11,7 @@ const kpiEff = document.getElementById("kpiEff");
 const estadoGlobal = document.getElementById("estadoGlobal");
 const estadoCompletadas = document.getElementById("estadoCompletadas");
 const estadoFallidas = document.getElementById("estadoFallidas");
+const EFFICIENCY_BONUS = 5;
 
 const graficaIndividual = new Chart(document.getElementById("graficaIndividual"), {
   type: "doughnut",
@@ -94,7 +95,7 @@ function updateUI(stat) {
   completadas.innerText = stat.completadas;
   fallidas.innerText = stat.fallidas;
   kpiProd.innerText = `${tasa}%`;
-  kpiEff.innerText = `${Math.min(100, tasa + 5)}%`;
+  kpiEff.innerText = `${Math.min(100, tasa + EFFICIENCY_BONUS)}%`;
 
   applyStatusLabels(stat.completadas, stat.fallidas, tasa);
 
