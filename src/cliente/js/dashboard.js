@@ -10,7 +10,7 @@ import {
 import { logout, getUserProfile } from "./auth.js";
 import { auth } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { config } from "./config.js";
+import { buildBackendUrl } from "./config.js";
 
 document.getElementById("btnLogout").addEventListener("click", logout);
 
@@ -38,7 +38,7 @@ function setActiveRoleView(role) {
 
 async function apiFetch(path) {
   const token = await auth.currentUser.getIdToken();
-  const response = await fetch(`${config.backendURL}${path}`, {
+  const response = await fetch(buildBackendUrl(path), {
     headers: {
       "Authorization": `Bearer ${token}`
     }
@@ -104,7 +104,7 @@ async function initAdminView({ useGlobalChoferes = false } = {}) {
       card("Rutas del chofer", kpis.totalRutas),
       card("Entregas del chofer", kpis.totalEntregas),
       card("Tasa éxito chofer", `${kpis.tasaExito || 0}%`),
-      card("Tasa éxito equipo", `${reporte.tasaExitoEquipo || 0}%`)
+      card("Tasa éxito equipo", `${reporte.tasaExito || 0}%`)
     ].join("");
   };
 
@@ -173,7 +173,7 @@ async function initChoferView() {
     actualizarResumen();
 
     try {
-      await fetch(`${config.backendURL}/api/chofer/entregas/${id}`, {
+      await fetch(buildBackendUrl(`/api/chofer/entregas/${id}`), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

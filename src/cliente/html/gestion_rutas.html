@@ -200,12 +200,16 @@ input,select{
   background:#16a34a;
 }
 
-.inactiva{
-  background:#dc2626;
-}
-
 .pendiente{
   background:#f59e0b;
+}
+
+.completada{
+  background:#2563eb;
+}
+
+.cancelada{
+  background:#6b7280;
 }
 
 /* BUTTONS */
@@ -366,7 +370,7 @@ input,select{
   </div>
 
   <div class="kpi">
-    <h4>Inactivas</h4>
+    <h4>Completadas/Canceladas</h4>
     <p id="inact">0</p>
   </div>
 
@@ -394,7 +398,8 @@ input,select{
   <select id="estado">
     <option value="pendiente">Pendiente</option>
     <option value="activa">Activa</option>
-    <option value="inactiva">Inactiva</option>
+    <option value="completada">Completada</option>
+    <option value="cancelada">Cancelada</option>
   </select>
 
   <button onclick="add()" style="
@@ -416,8 +421,9 @@ input,select{
   <select id="filterEstado" onchange="render()">
     <option value="all">Todos los estados</option>
     <option value="activa">Activa</option>
-    <option value="inactiva">Inactiva</option>
     <option value="pendiente">Pendiente</option>
+    <option value="completada">Completada</option>
+    <option value="cancelada">Cancelada</option>
   </select>
 
   <select id="filterChofer" onchange="render()">

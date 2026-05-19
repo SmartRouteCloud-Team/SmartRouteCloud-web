@@ -1,6 +1,6 @@
 import { auth } from "./firebase.js";
 import { getUserProfile, logout } from "./auth.js";
-import { config } from "./config.js";
+import { buildBackendUrl } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 export async function waitForUser() {
@@ -43,7 +43,7 @@ export async function apiFetch(path, options = {}) {
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${config.backendURL}${path}`, {
+  const response = await fetch(buildBackendUrl(path), {
     ...options,
     headers,
   });
