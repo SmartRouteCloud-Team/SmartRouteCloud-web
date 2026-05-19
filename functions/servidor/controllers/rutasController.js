@@ -178,8 +178,6 @@ async function cargarMasivo(req, res) {
           estado: "pendiente",
           destinatario: `Destinatario ${entrega.idPedido || entrega.ordenEntrega}`,
           direccion: `${entrega.calle} ${entrega.numero}, ${entrega.ciudad}`,
-          latitud: entrega.latitud,
-          longitud: entrega.longitud,
           lat: entrega.latitud,
           lng: entrega.longitud,
         })),

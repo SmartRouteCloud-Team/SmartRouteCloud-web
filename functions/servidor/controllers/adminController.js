@@ -309,7 +309,7 @@ async function actualizarRuta(req, res) {
     const adminUid = req.user.uid;
     const rutaId = req.params.id;
     const tiUser = isTIUser(req);
-    const { codigo, origen, destino } = req.body;
+    const { codigo, origen, destino, choferUid, estado } = req.body;
 
     const rutaDoc = await db.collection("routes").doc(rutaId).get();
     if (!rutaDoc.exists) {
@@ -335,6 +335,26 @@ async function actualizarRuta(req, res) {
 
     if (destino !== undefined) {
       updates.destino = String(destino || "").trim();
+    }
+
+    if (choferUid !== undefined) {
+      if (!choferUid) {
+        updates.choferAsignado = null;
+      } else {
+        const choferDoc = await db.collection("users").doc(choferUid).get();
+        if (!choferDoc.exists || (!tiUser && choferDoc.data().adminAsignado !== adminUid)) {
+          return res.status(403).json({ error: "No tienes acceso a este chofer" });
+        }
+        updates.choferAsignado = choferUid;
+      }
+    }
+
+    if (estado !== undefined) {
+      const estadosValidos = ["pendiente", "activa", "completada", "cancelada"];
+      if (!estadosValidos.includes(estado)) {
+        return res.status(400).json({ error: "Estado inválido" });
+      }
+      updates.estado = estado;
     }
 
     if (Object.keys(updates).length === 1) {

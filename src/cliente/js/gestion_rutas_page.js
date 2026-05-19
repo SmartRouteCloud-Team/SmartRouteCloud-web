@@ -51,6 +51,14 @@ function getChoferName(uid) {
   return chofer ? (chofer.nombre || chofer.email || chofer.id) : "Sin asignar";
 }
 
+function getRouteCoordinate(route, firstEntrega, axis) {
+  if (axis === "lat") {
+    return route.lat ?? route.ubicacionActual?.lat ?? firstEntrega?.lat ?? firstEntrega?.latitud ?? DEFAULT_MAP_CENTER.lat;
+  }
+
+  return route.lng ?? route.ubicacionActual?.lng ?? firstEntrega?.lng ?? firstEntrega?.longitud ?? DEFAULT_MAP_CENTER.lng;
+}
+
 function normalizeRoute(route) {
   const firstEntrega = Array.isArray(route.entregas) ? route.entregas[0] : null;
   return {
@@ -61,8 +69,8 @@ function normalizeRoute(route) {
     choferUid: route.choferAsignado || null,
     chofer: getChoferName(route.choferAsignado),
     estado: uiStateFromBackend(route.estado),
-    lat: route.lat ?? route.ubicacionActual?.lat ?? firstEntrega?.lat ?? firstEntrega?.latitud ?? DEFAULT_MAP_CENTER.lat,
-    lng: route.lng ?? route.ubicacionActual?.lng ?? firstEntrega?.lng ?? firstEntrega?.longitud ?? DEFAULT_MAP_CENTER.lng,
+    lat: getRouteCoordinate(route, firstEntrega, "lat"),
+    lng: getRouteCoordinate(route, firstEntrega, "lng"),
     entregas: (route.entregas || []).map((e, idx) => ({
       pedido: e.id || e.pedido || `#${idx + 1}`,
       cliente: e.cliente || e.destinatario || "Cliente",
@@ -273,21 +281,9 @@ async function add() {
         codigo: nombre,
         origen,
         destino,
+        choferUid,
+        estado: backendStateFromUi(estadoUi),
       }),
-    });
-
-    if (choferUid) {
-      await apiFetch(`/api/admin/rutas/${editId}/asignar`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ choferUid }),
-      });
-    }
-
-    await apiFetch(`/api/admin/rutas/${editId}/estado`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado: backendStateFromUi(estadoUi) }),
     });
   } else {
     const created = await apiFetch("/api/admin/rutas", {
