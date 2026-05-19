@@ -174,11 +174,6 @@ async function init() {
 window.select = select;
 window.set = (status) => applyStatus(status).catch((error) => alert(`Error: ${error.message}`));
 window.addInc = addInc;
-window.closeModal = () => {
-  const modal = document.getElementById("modalPass");
-  if (modal) modal.style.display = "none";
-};
-window.checkPass = window.closeModal;
 
 init().catch((error) => {
   console.error("Error en pedidos chofer:", error);

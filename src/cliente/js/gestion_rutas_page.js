@@ -24,6 +24,10 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function encodeId(id) {
+  return encodeURIComponent(String(id ?? ""));
+}
+
 function uiStateFromBackend(estado) {
   if (estado === "activa") return "activa";
   if (estado === "pendiente") return "pendiente";
@@ -183,16 +187,18 @@ function render() {
     const editing = editId === r.id;
     const uso = r.choferUid ? countRoutes(r.choferUid) : 0;
 
+    const encodedId = encodeId(r.id);
+
     rows.innerHTML += `
-      <div class="row ${editing ? "editing" : ""}" onclick="showDetail('${escapeHtml(r.id)}')">
+      <div class="row ${editing ? "editing" : ""}" onclick="showDetailByEncoded('${encodedId}')">
         <div>${escapeHtml(r.nombre)}</div>
         <div>${escapeHtml(r.origen)}</div>
         <div>${escapeHtml(r.destino)}</div>
         <div>${escapeHtml(r.chofer)}</div>
         <div><span class="badge ${escapeHtml(r.estado)}">${escapeHtml(r.estado)}</span></div>
         <div>
-          <button class="icon-btn edit" onclick="event.stopPropagation();edit('${escapeHtml(r.id)}')">✏️</button>
-          <button class="icon-btn delete" onclick="event.stopPropagation();del('${escapeHtml(r.id)}')">✖</button>
+          <button class="icon-btn edit" onclick="event.stopPropagation();editByEncoded('${encodedId}')">✏️</button>
+          <button class="icon-btn delete" onclick="event.stopPropagation();delByEncoded('${encodedId}')">✖</button>
         </div>
         <div>${uso}/${MAX_RUTAS}</div>
       </div>
@@ -220,6 +226,10 @@ function showDetail(id) {
   title.textContent = `${currentRoute.nombre} - ${currentRoute.chofer}`;
   renderDeliveries();
   renderMapForRoute(currentRoute);
+}
+
+function showDetailByEncoded(encodedId) {
+  showDetail(decodeURIComponent(encodedId));
 }
 
 async function add() {
@@ -293,8 +303,16 @@ function edit(id) {
   render();
 }
 
-function del() {
-  alert("No existe endpoint para eliminar rutas en backend actualmente.");
+function del(id) {
+  alert(`No existe endpoint para eliminar la ruta ${id} en backend actualmente.`);
+}
+
+function editByEncoded(encodedId) {
+  edit(decodeURIComponent(encodedId));
+}
+
+function delByEncoded(encodedId) {
+  del(decodeURIComponent(encodedId));
 }
 
 function filterDeliveries() {
@@ -310,8 +328,11 @@ function toggleAccordion(index) {
 window.render = render;
 window.add = () => add().catch((error) => alert(`Error: ${error.message}`));
 window.showDetail = showDetail;
+window.showDetailByEncoded = showDetailByEncoded;
 window.edit = edit;
+window.editByEncoded = editByEncoded;
 window.del = del;
+window.delByEncoded = delByEncoded;
 window.filterDeliveries = filterDeliveries;
 window.toggleAccordion = toggleAccordion;
 
