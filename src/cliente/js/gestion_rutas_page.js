@@ -183,13 +183,13 @@ function render() {
   let act = 0;
   let inact = 0;
   let pend = 0;
-  let total = 0;
+  let filteredCount = 0;
 
   rutas.forEach((r) => {
     if (fEstado !== "all" && r.estado !== fEstado) return;
     if (fChofer !== "all" && r.choferUid !== fChofer) return;
 
-    total += 1;
+    filteredCount += 1;
     if (r.estado === "activa") act += 1;
     if (r.estado === "pendiente") pend += 1;
     if (r.estado === "completada" || r.estado === "cancelada") inact += 1;
@@ -234,7 +234,7 @@ function render() {
     });
   });
 
-  document.getElementById("total").innerText = total;
+  document.getElementById("total").innerText = filteredCount;
   document.getElementById("act").innerText = act;
   document.getElementById("inact").innerText = inact;
   document.getElementById("pend").innerText = pend;

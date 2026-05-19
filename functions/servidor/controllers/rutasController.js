@@ -165,6 +165,7 @@ async function cargarMasivo(req, res) {
 
       const routeRef = db.collection("routes").doc(rutaId);
       const routeDoc = await routeRef.get();
+      const routeCreatedAt = routeDoc.exists ? routeDoc.data().createdAt || new Date() : new Date();
       const dashboardRouteData = {
         codigo: rutaId,
         creadoPor: req.user.uid,
@@ -181,7 +182,7 @@ async function cargarMasivo(req, res) {
           lat: entrega.latitud,
           lng: entrega.longitud,
         })),
-        createdAt: routeDoc.exists ? routeDoc.data().createdAt || new Date() : new Date(),
+        createdAt: routeCreatedAt,
         updatedAt: new Date(),
       };
 
