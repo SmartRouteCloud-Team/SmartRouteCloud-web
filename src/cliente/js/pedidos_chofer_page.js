@@ -1,5 +1,6 @@
 import { apiFetch, getProfileOrRedirect } from "./pageAuth.js";
 
+const DEFAULT_MAP_CENTER = { lat: 19.4, lng: -99.1 };
 let selected = null;
 let markers = [];
 let line;
@@ -11,7 +12,7 @@ const driverData = {
   incidencias: [],
 };
 
-const map = L.map("map").setView([19.4, -99.1], 6);
+const map = L.map("map").setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap",
 }).addTo(map);

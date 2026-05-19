@@ -48,7 +48,10 @@ export async function apiFetch(path, options = {}) {
     headers,
   });
 
-  const payload = await response.json().catch(() => ({}));
+  const payload = await response.json().catch((error) => {
+    console.warn("Respuesta API sin JSON válido:", error);
+    return {};
+  });
 
   if (!response.ok) {
     throw new Error(payload.error || "Error de API");

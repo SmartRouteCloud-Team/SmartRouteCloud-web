@@ -1,6 +1,7 @@
 import { apiFetch, getProfileOrRedirect } from "./pageAuth.js";
 
 const MAX_RUTAS = 3;
+const DEFAULT_MAP_CENTER = { lat: 19.4326, lng: -99.1332 };
 let currentRoute = null;
 let editId = null;
 let choferes = [];
@@ -9,7 +10,7 @@ let marker = null;
 
 const selChofer = document.getElementById("chofer");
 const filterChofer = document.getElementById("filterChofer");
-const map = L.map("map").setView([19.4326, -99.1332], 6);
+const map = L.map("map").setView([DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng], 6);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap",
@@ -61,8 +62,8 @@ function normalizeRoute(route) {
     choferUid: route.choferAsignado || null,
     chofer: getChoferName(route.choferAsignado),
     estado: uiStateFromBackend(route.estado),
-    lat: route.lat ?? route.ubicacionActual?.lat ?? 19.4326,
-    lng: route.lng ?? route.ubicacionActual?.lng ?? -99.1332,
+    lat: route.lat ?? route.ubicacionActual?.lat ?? DEFAULT_MAP_CENTER.lat,
+    lng: route.lng ?? route.ubicacionActual?.lng ?? DEFAULT_MAP_CENTER.lng,
     entregas: (route.entregas || []).map((e, idx) => ({
       pedido: e.id || e.pedido || `#${idx + 1}`,
       cliente: e.cliente || e.destinatario || "Cliente",

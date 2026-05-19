@@ -11,6 +11,7 @@ const kpiEff = document.getElementById("kpiEff");
 const estadoGlobal = document.getElementById("estadoGlobal");
 const estadoCompletadas = document.getElementById("estadoCompletadas");
 const estadoFallidas = document.getElementById("estadoFallidas");
+// Ajuste visual para reflejar eficiencia operativa (margen interno del dashboard).
 const EFFICIENCY_BONUS = 5;
 
 const graficaIndividual = new Chart(document.getElementById("graficaIndividual"), {
